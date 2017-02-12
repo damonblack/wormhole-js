@@ -51,9 +51,6 @@ class Game extends Component {
 
   constructor(props) {
     super(props);
-
-    this.mapWidth = 25;
-    this.mapHeight = 25;
     bindAll(this, ['zoomIn', 'zoomOut', 'onWheel', 'onClick', 'zoom', 'drawHexes', 'drawHex', 'pixelToHex']);
   }
 
@@ -61,11 +58,11 @@ class Game extends Component {
     this.map.clear();
     this.map.lineStyle(this.lineWidth, 0x666666, 1);
 
-    for (let j = 0; j < this.mapWidth; j++) {
-      for (let i = 0; i < this.mapHeight; i++) {
-        const offsetX = j % 2 ? this.mapOffsetXOddRow : this.mapOffsetX;
-        const x = i * this.hexColumnWidth + offsetX;
-        const y = j * this.hexRowHeight + this.mapOffsetY;
+    for (let j = 0; j < this.renderer.height; j += this.hexRowHeight) {
+      for (let i = 0; i < this.renderer.width; i += this.hexWidth) {
+        const offsetX = j % (2 * this.hexRowHeight) ? this.mapOffsetXOddRow : this.mapOffsetX;
+        const x = i + offsetX;
+        const y = j + this.mapOffsetY;
         this.drawHex({x, y});
       }
     }
@@ -107,39 +104,11 @@ class Game extends Component {
   @action
   zoomIn() {
     this.zoom(1);
-    //
-    //
-    // this.map.lineWidth = 0;
-    // for (let y = 0; y < 900; y += 1) {
-    //   console.log(`rendering row ${y}`);
-    //   for (let x = 0; x < 600; x += 1) {
-    //     const hex = this.pixelToHex(x, y);
-    //
-    //     if (hex.r == 0 && hex.q % 2) {
-    //       this.map.beginFill(0x93493A)
-    //       this.map.drawRect(x, y, 1, 1);
-    //       console.log('bing');
-    //       this.map.endFill();
-    //     }
-    //   }
-    // }
   }
 
   @action
   zoomOut() {
     this.zoom(-1);
-    // this.map.lineWidth = 0;
-    // for (let y = 0; y < this.mapWidth ; y += 3) {
-    //   for (let x = 0; x < 600; x += 3) {
-    //     const hex = this.pixelToHex(x, y);
-    //
-    //     if (hex.r == 0 && hex.q % 2) {
-    //       this.map.beginFill(0x93493A);
-    //       this.map.drawRect(x, y, 3, 3);
-    //       this.map.endFill();
-    //     }
-    //   }
-    // }
   }
 
   @action
@@ -156,13 +125,7 @@ class Game extends Component {
   }
 
   onClick(e) {
-    console.log(e);
-    console.log(e.offsetX);
-    console.log(e.offsetY);
-    console.log(this.hexRadius);
-    console.log(`hex width ${this.hexWidth}`);
     const hex = this.pixelToHex(e.offsetX, e.offsetY);
-    console.log(hex);
     this.fillHex(this.hexToPixel(hex), 0x232233, .75);
     this.renderer.render(this.stage);
   }
