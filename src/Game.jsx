@@ -66,6 +66,11 @@ class Game extends Component {
         this.drawHex({x, y});
       }
     }
+
+    const origin = this.hexToPixel({q: 0, r: 0});
+    this.map.lineStyle(this.lineWidth * 3, 0x990022, 1);
+    this.drawHex(origin);
+    this.map.lineStyle(this.lineWidth, 0x666666, 1);
     this.renderer.render(this.stage);
   }
 
