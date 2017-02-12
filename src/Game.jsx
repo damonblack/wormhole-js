@@ -91,7 +91,7 @@ class Game extends Component {
   }
 
   componentDidMount() {
-    this.renderer = autoDetectRenderer(900, 600, {}, true);
+    this.renderer = autoDetectRenderer(900, 600);
     this.stage = new Container();
     this.map = new Graphics();
 
