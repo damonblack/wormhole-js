@@ -6,9 +6,9 @@ You can find the most recent version of this guide [here](https://github.com/fac
 ## Table of Contents
 
 - [Available Scripts](#available-scripts)
-  - [npm start](#npm-start)
-  - [npm test](#npm-test)
-  - [npm run build](#npm-run-build)
+  - [yarn start](#yarn-start)
+  - [yarn test](#yarn-test)
+  - [yarn run build](#yarn-run-build)
 - [Syntax Highlighting in the Editor](#syntax-highlighting-in-the-editor)
 - [Displaying Lint Output in the Editor](#displaying-lint-output-in-the-editor)
 - [Installing a Dependency](#installing-a-dependency)
@@ -54,15 +54,15 @@ You can find the most recent version of this guide [here](https://github.com/fac
   - [S3 and CloudFront](#s3-and-cloudfront)
   - [Surge](#surge)
 - [Troubleshooting](#troubleshooting)
-  - [`npm test` hangs on macOS Sierra](#npm-test-hangs-on-macos-sierra)
-  - [`npm run build` silently fails](#npm-run-build-silently-fails)
+  - [`yarn test` hangs on macOS Sierra](#yarn-test-hangs-on-macos-sierra)
+  - [`yarn run build` silently fails](#yarn-run-build-silently-fails)
 - [Something Missing?](#something-missing)
 
 ## Available Scripts
 
 In the project directory, you can run:
 
-### `npm start`
+### `yarn start`
 
 Runs the app in the development mode.<br>
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
@@ -70,12 +70,12 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 The page will reload if you make edits.<br>
 You will also see any lint errors in the console.
 
-### `npm test`
+### `yarn test`
 
 Launches the test runner in the interactive watch mode.<br>
 See the section about [running tests](#running-tests) for more information.
 
-### `npm run build`
+### `yarn run build`
 
 Builds the app for production to the `build` folder.<br>
 It correctly bundles React in production mode and optimizes the build for the best performance.
@@ -120,7 +120,7 @@ Then add this block to the `package.json` file of your project:
 Finally, you will need to install some packages *globally*:
 
 ```sh
-npm install -g eslint-config-react-app@0.3.0 eslint@3.8.1 babel-eslint@7.0.0 eslint-plugin-react@6.4.1 eslint-plugin-import@2.0.1 eslint-plugin-jsx-a11y@2.2.3 eslint-plugin-flowtype@2.21.0
+yarn global add eslint-config-react-app@0.3.0 eslint@3.8.1 babel-eslint@7.0.0 eslint-plugin-react@6.4.1 eslint-plugin-import@2.0.1 eslint-plugin-jsx-a11y@2.2.3 eslint-plugin-flowtype@2.21.0
 ```
 
 We recognize that this is suboptimal, but it is currently required due to the way we hide the ESLint dependency. The ESLint team is already [working on a solution to this](https://github.com/eslint/eslint/issues/3458) so this may become unnecessary in a couple of months.
@@ -308,7 +308,7 @@ Inside `index.html`, you can use it like this:
 
 Only files inside the `public` folder will be accessible by `%PUBLIC_URL%` prefix. If you need to use a file from `src` or `node_modules`, you’ll have to copy it there to explicitly specify your intention to make this file a part of the build.
 
-When you run `npm run build`, Create React App will substitute `%PUBLIC_URL%` with a correct absolute path so your project works even if you use client-side routing or host it at a non-root URL.
+When you run `yarn run build`, Create React App will substitute `%PUBLIC_URL%` with a correct absolute path so your project works even if you use client-side routing or host it at a non-root URL.
 
 In JavaScript code, you can use `process.env.PUBLIC_URL` for similar purposes:
 
@@ -349,11 +349,11 @@ Alternatively, you can force the linter to ignore any line by adding `// eslint-
 
 You don’t have to use [React Bootstrap](https://react-bootstrap.github.io) together with React but it is a popular library for integrating Bootstrap with React apps. If you need it, you can integrate it with Create React App by following these steps:
 
-Install React Bootstrap and Bootstrap from NPM. React Bootstrap does not include Bootstrap CSS so this needs to be installed as well:
+Install React Bootstrap and Bootstrap from yarn. React Bootstrap does not include Bootstrap CSS so this needs to be installed as well:
 
 ```
-npm install react-bootstrap --save
-npm install bootstrap@3 --save
+yarn add react-bootstrap
+yarn add bootstrap@3
 ```
 
 Import Bootstrap CSS and optionally Bootstrap theme CSS in the ```src/index.js``` file:
@@ -429,7 +429,7 @@ render() {
 
 During the build, `process.env.REACT_APP_SECRET_CODE` will be replaced with the current value of the `REACT_APP_SECRET_CODE` environment variable. Remember that the `NODE_ENV` variable will be set for you automatically.
 
-When you load the app in the browser and inspect the `<input>`, you will see its value set to `abcdef`, and the bold text will show the environment provided when using `npm start`:
+When you load the app in the browser and inspect the `<input>`, you will see its value set to `abcdef`, and the bold text will show the environment provided when using `yarn start`:
 
 ```html
 <div>
@@ -460,7 +460,7 @@ life of the shell session.
 #### Windows (cmd.exe)
 
 ```cmd
-set REACT_APP_SECRET_CODE=abcdef&&npm start
+set REACT_APP_SECRET_CODE=abcdef&&yarn start
 ```
 
 (Note: the lack of whitespace is intentional.)
@@ -468,7 +468,7 @@ set REACT_APP_SECRET_CODE=abcdef&&npm start
 #### Linux, OS X (Bash)
 
 ```bash
-REACT_APP_SECRET_CODE=abcdef npm start
+REACT_APP_SECRET_CODE=abcdef yarn start
 ```
 
 ### Adding Development Environment Variables In `.env`
@@ -537,7 +537,7 @@ Conveniently, this avoids [CORS issues](http://stackoverflow.com/questions/21854
 Fetch API cannot load http://localhost:4000/api/todos. No 'Access-Control-Allow-Origin' header is present on the requested resource. Origin 'http://localhost:3000' is therefore not allowed access. If an opaque response serves your needs, set the request's mode to 'no-cors' to fetch the resource with CORS disabled.
 ```
 
-Keep in mind that `proxy` only has effect in development (with `npm start`), and it is up to you to ensure that URLs like `/api/todos` point to the right thing in production. You don’t have to use the `/api` prefix. Any unrecognized request without a `text/html` accept header will be redirected to the specified `proxy`.
+Keep in mind that `proxy` only has effect in development (with `yarn start`), and it is up to you to ensure that URLs like `/api/todos` point to the right thing in production. You don’t have to use the `/api` prefix. Any unrecognized request without a `text/html` accept header will be redirected to the specified `proxy`.
 
 Currently the `proxy` option only handles HTTP requests, and it won’t proxy WebSocket connections.<br>
 If the `proxy` option is **not** flexible enough for you, alternatively you can:
@@ -551,12 +551,12 @@ If the `proxy` option is **not** flexible enough for you, alternatively you can:
 
 You may require the dev server to serve pages over HTTPS. One particular case where this could be useful is when using [the "proxy" feature](#proxying-api-requests-in-development) to proxy requests to an API server when that API server is itself serving HTTPS.
 
-To do this, set the `HTTPS` environment variable to `true`, then start the dev server as usual with `npm start`:
+To do this, set the `HTTPS` environment variable to `true`, then start the dev server as usual with `yarn start`:
 
 #### Windows (cmd.exe)
 
 ```cmd
-set HTTPS=true&&npm start
+set HTTPS=true&&yarn start
 ```
 
 (Note: the lack of whitespace is intentional.)
@@ -564,7 +564,7 @@ set HTTPS=true&&npm start
 #### Linux, OS X (Bash)
 
 ```bash
-HTTPS=true npm start
+HTTPS=true yarn start
 ```
 
 Note that the server will use a self-signed certificate, so your web browser will almost definitely display a warning upon accessing the page.
@@ -612,7 +612,7 @@ We recommend to put the test files (or `__tests__` folders) next to the code the
 
 ### Command Line Interface
 
-When you run `npm test`, Jest will launch in the watch mode. Every time you save a file, it will re-run the tests, just like `npm start` recompiles the code.
+When you run `yarn test`, Jest will launch in the watch mode. Every time you save a file, it will re-run the tests, just like `yarn start` recompiles the code.
 
 The watcher includes an interactive command-line interface with the ability to run all tests, or focus on a search pattern. It is designed this way so that you can keep it open and enjoy fast re-runs. You can learn the commands from the “Watch Usage” note that the watcher prints after every run:
 
@@ -620,7 +620,7 @@ The watcher includes an interactive command-line interface with the ability to r
 
 ### Version Control Integration
 
-By default, when you run `npm test`, Jest will only run the tests related to files changed since the last commit. This is an optimization designed to make your tests runs fast regardless of how many tests you have. However it assumes that you don’t often commit the code that doesn’t pass the tests.
+By default, when you run `yarn test`, Jest will only run the tests related to files changed since the last commit. This is an optimization designed to make your tests runs fast regardless of how many tests you have. However it assumes that you don’t often commit the code that doesn’t pass the tests.
 
 Jest will always explicitly mention that it only ran tests related to the files changed since the last commit. You can also press `a` in the watch mode to force Jest to run all tests.
 
@@ -668,7 +668,7 @@ When you encounter bugs caused by changing components, you will gain a deeper in
 If you’d like to test components in isolation from the child components they render, we recommend using [`shallow()` rendering API](http://airbnb.io/enzyme/docs/api/shallow.html) from [Enzyme](http://airbnb.io/enzyme/). You can write a smoke test with it too:
 
 ```sh
-npm install --save-dev enzyme react-addons-test-utils
+yarn add enzyme react-addons-test-utils --dev
 ```
 
 ```js
@@ -742,7 +742,7 @@ Similarly, `fit()` lets you focus on a specific test without running any other t
 ### Coverage Reporting
 
 Jest has an integrated coverage reporter that works well with ES6 and requires no configuration.<br>
-Run `npm test -- --coverage` (note extra `--` in the middle) to include a coverage report like this:
+Run `yarn test -- --coverage` (note extra `--` in the middle) to include a coverage report like this:
 
 ![coverage report](http://i.imgur.com/5bFhnTS.png)
 
@@ -750,9 +750,9 @@ Note that tests run much slower with coverage so it is recommended to run it sep
 
 ### Continuous Integration
 
-By default `npm test` runs the watcher with interactive CLI. However, you can force it to run tests once and finish the process by setting an environment variable called `CI`.
+By default `yarn test` runs the watcher with interactive CLI. However, you can force it to run tests once and finish the process by setting an environment variable called `CI`.
 
-When creating a build of your application with `npm run build` linter warnings are not checked by default. Like `npm test`, you can force the build to perform a linter warning check by setting the environment variable `CI`. If any warnings are encountered then the build fails.
+When creating a build of your application with `yarn run build` linter warnings are not checked by default. Like `yarn test`, you can force the build to perform a linter warning check by setting the environment variable `CI`. If any warnings are encountered then the build fails.
 
 Popular CI servers already set the environment variable `CI` by default but you can do this yourself too:
 
@@ -770,8 +770,8 @@ cache:
   directories:
     - node_modules
 script:
-  - npm test
-  - npm run build
+  - yarn test
+  - yarn run build
 ```
 1. Trigger your first build with a git push.
 1. [Customize your Travis CI Build](https://docs.travis-ci.com/user/customizing-the-build/) if needed.
@@ -780,11 +780,11 @@ script:
 ##### Windows (cmd.exe)
 
 ```cmd
-set CI=true&&npm test
+set CI=true&&yarn test
 ```
 
 ```cmd
-set CI=true&&npm run build
+set CI=true&&yarn run build
 ```
 
 (Note: the lack of whitespace is intentional.)
@@ -792,11 +792,11 @@ set CI=true&&npm run build
 ##### Linux, OS X (Bash)
 
 ```bash
-CI=true npm test
+CI=true yarn test
 ```
 
 ```bash
-CI=true npm run build
+CI=true yarn run build
 ```
 
 The test command will force Jest to run tests once instead of launching the watcher.
@@ -863,10 +863,10 @@ You can also deploy your Storybook as a static app. This way, everyone in your t
 
 **Here’s how to setup your app with Storybook:**
 
-First, install the following npm package globally:
+First, install the following yarn package globally:
 
 ```sh
-npm install -g getstorybook
+yarn global add getstorybook
 ```
 
 Then, run the following command inside your app’s directory:
@@ -890,7 +890,7 @@ You can turn your React app into a [Progressive Web App](https://developers.goog
 
 ## Deployment
 
-`npm run build` creates a `build` directory with a production build of your app. Set up your favourite HTTP server so that a visitor to your site is served `index.html`, and requests to static paths like `/static/js/main.<hash>.js` are served with the contents of the `/static/js/main.<hash>.js` file. For example, Python contains a built-in HTTP server that can serve static files:
+`yarn run build` creates a `build` directory with a production build of your app. Set up your favourite HTTP server so that a visitor to your site is served `index.html`, and requests to static paths like `/static/js/main.<hash>.js` are served with the contents of the `/static/js/main.<hash>.js` file. For example, Python contains a built-in HTTP server that can serve static files:
 
 ```sh
 cd build
@@ -948,7 +948,7 @@ This will let Create React App correctly infer the root path to use in the gener
 
 ### Firebase
 
-Install the Firebase CLI if you haven't already by running `npm install -g firebase-tools`. Sign up for a [Firebase account](https://console.firebase.google.com/) and create a new project. Run `firebase login` and login with your previous created Firebase account.
+Install the Firebase CLI if you haven't already by running `yarn global add firebase-tools`. Sign up for a [Firebase account](https://console.firebase.google.com/) and create a new project. Run `firebase login` and login with your previous created Firebase account.
 
 Then run the `firebase init` command from your project's root. You need to choose the **Hosting: Configure and deploy Firebase Hosting sites** and choose the Firebase project you created in the previous step. You will need to agree with `database.rules.json` being created, choose `build` as the public directory, and also agree to **Configure as a single-page app** by replying with `y`.
 
@@ -987,7 +987,7 @@ Then run the `firebase init` command from your project's root. You need to choos
     ✔  Firebase initialization complete!
 ```
 
-Now, after you create a production build with `npm run build`, you can deploy it by running `firebase deploy`.
+Now, after you create a production build with `yarn run build`, you can deploy it by running `firebase deploy`.
 
 ```sh
     === Deploying to 'example-app-fd690'...
@@ -1026,12 +1026,12 @@ Create React App uses the `homepage` field to determine the root URL in the buil
 
 #### Step 2: Install `gh-pages` and add `deploy` to `scripts` in `package.json`
 
-Now, whenever you run `npm run build`, you will see a cheat sheet with instructions on how to deploy to GitHub Pages.
+Now, whenever you run `yarn run build`, you will see a cheat sheet with instructions on how to deploy to GitHub Pages.
 
 To publish it at [https://myusername.github.io/my-app](https://myusername.github.io/my-app), run:
 
 ```sh
-npm install --save-dev gh-pages
+yarn add gh-pages --dev
 ```
 
 Add the following script in your `package.json`:
@@ -1040,18 +1040,18 @@ Add the following script in your `package.json`:
   // ...
   "scripts": {
     // ...
-    "deploy": "npm run build&&gh-pages -d build"
+    "deploy": "yarn run build&&gh-pages -d build"
   }
 ```
 
 (Note: the lack of whitespace is intentional.)
 
-#### Step 3: Deploy the site by running `npm run deploy`
+#### Step 3: Deploy the site by running `yarn run deploy`
 
 Then run:
 
 ```sh
-npm run deploy
+yarn run deploy
 ```
 
 #### Step 4: Ensure your project's settings use `gh-pages`
@@ -1085,7 +1085,7 @@ See the [Modulus blog post](http://blog.modulus.io/deploying-react-apps-on-modul
 **To do a manual deploy to Netlify's CDN:**
 
 ```sh
-npm install netlify-cli
+yarn global add netlify-cli
 netlify deploy
 ```
 
@@ -1119,7 +1119,7 @@ See this [blog post](https://medium.com/@omgwtfmarc/deploying-create-react-app-t
 
 ### Surge
 
-Install the Surge CLI if you haven't already by running `npm install -g surge`. Run the `surge` command and log in you or create a new account. You just need to specify the *build* folder and your custom domain, and you are done.
+Install the Surge CLI if you haven't already by running `yarn global add surge`. Run the `surge` command and log in you or create a new account. You just need to specify the *build* folder and your custom domain, and you are done.
 
 ```sh
               email: email@domain.com
@@ -1140,11 +1140,11 @@ Note that in order to support routers that use HTML5 `pushState` API, you may wa
 
 ## Troubleshooting
 
-### `npm test` hangs on macOS Sierra
+### `yarn test` hangs on macOS Sierra
 
-If you run `npm test` and the console gets stuck after printing `react-scripts test --env=jsdom` to the console there might be a problem with your [Watchman](https://facebook.github.io/watchman/) installation as described in [facebookincubator/create-react-app#713](https://github.com/facebookincubator/create-react-app/issues/713).
+If you run `yarn test` and the console gets stuck after printing `react-scripts test --env=jsdom` to the console there might be a problem with your [Watchman](https://facebook.github.io/watchman/) installation as described in [facebookincubator/create-react-app#713](https://github.com/facebookincubator/create-react-app/issues/713).
 
-We recommend deleting `node_modules` in your project and running `npm install` (or `yarn` if you use it) first. If it doesn't help, you can try one of the numerous workarounds mentioned in these issues:
+We recommend deleting `node_modules` in your project and running `yarn` (or `npm install` if you use it) first. If it doesn't help, you can try one of the numerous workarounds mentioned in these issues:
 
 * [facebook/jest#1767](https://github.com/facebook/jest/issues/1767)
 * [facebook/watchman#358](https://github.com/facebook/watchman/issues/358)
@@ -1164,9 +1164,9 @@ If this still doesn't help, try running `launchctl unload -F ~/Library/LaunchAge
 
 There are also reports that *uninstalling* Watchman fixes the issue. So if nothing else helps, remove it from your system and try again.
 
-### `npm run build` silently fails
+### `yarn run build` silently fails
 
-It is reported that `npm run build` can fail on machines with no swap space, which is common in cloud environments. If [the symptoms are matching](https://github.com/facebookincubator/create-react-app/issues/1133#issuecomment-264612171), consider adding some swap space to the machine you’re building on, or build the project locally.
+It is reported that `yarn run build` can fail on machines with no swap space, which is common in cloud environments. If [the symptoms are matching](https://github.com/facebookincubator/create-react-app/issues/1133#issuecomment-264612171), consider adding some swap space to the machine you’re building on, or build the project locally.
 
 ## Something Missing?
 
