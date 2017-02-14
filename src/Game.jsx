@@ -8,6 +8,8 @@ import bindAll from 'lodash.bindall';
 @observer
 class Game extends Component {
   @observable hexRadiusRaw = 20;
+  @observable origin = { x: Math.floor(Math.sqrt(3) * 20), y: 20 };
+  @observable selectedHexes = [];
 
   @computed
   get hexRadius() {
@@ -15,18 +17,8 @@ class Game extends Component {
   }
 
   @computed
-  get mapOffsetX() {
-    return this.hexWidth;
-  }
-
-  @computed
   get mapOffsetXOddRow() {
     return this.hexWidth / 2;
-  }
-
-  @computed
-  get mapOffsetY() {
-    return this.hexRadius;
   }
 
   @computed
@@ -42,39 +34,43 @@ class Game extends Component {
   @computed
   get hexWidth() {
     return Math.sqrt(3) * this.hexRadius;
-  }
-
-  @computed
-  get hexColumnWidth() {
-    return this.hexWidth;
-  }
+  };
 
   constructor(props) {
     super(props);
-    bindAll(this, ['zoomIn', 'zoomOut', 'onWheel', 'onClick', 'zoom', 'drawHexes', 'drawHex', 'pixelToHex']);
+    bindAll(this, [
+      'zoomIn', 'zoomOut', 'onWheel', 'onClick', 'onMouseDown', 'onMouseMove', 'onMouseUp', 'zoom', 'drawHexes', 'drawHex', 'pixelToHex']);
+  }
+
+  fillSelectedHexes() {
+    this.selectedHexes.forEach((hex) => this.fillHex(this.hexToPixel(hex), 0x777777));
   }
 
   drawHexes() {
+    let row = 0;
     this.map.clear();
     this.map.lineStyle(this.lineWidth, 0x666666, 1);
 
-    for (let j = 0; j < this.renderer.height; j += this.hexRowHeight) {
-      for (let i = 0; i < this.renderer.width; i += this.hexWidth) {
-        const offsetX = j % (2 * this.hexRowHeight) ? this.mapOffsetXOddRow : this.mapOffsetX;
+    const hexWidth = this.hexWidth;
+    const hexRowHeight = this.hexRowHeight;
+
+    for (let j = (this.origin.y % hexRowHeight); j < this.renderer.height; j += hexRowHeight) {
+      const offsetX = (j - this.origin.y) % (2 * hexRowHeight) === 0 ? 0 : -this.mapOffsetXOddRow;
+      for (let i = this.origin.x % hexWidth; i < this.renderer.width + this.mapOffsetXOddRow; i += hexWidth) {
         const x = i + offsetX;
-        const y = j + this.mapOffsetY;
-        this.drawHex({x, y});
+        const y = j;
+        this.drawHex({ x, y });
       }
     }
 
-    const origin = this.hexToPixel({q: 0, r: 0});
     this.map.lineStyle(this.lineWidth * 3, 0x990022, 1);
-    this.drawHex(origin);
+    this.drawHex(this.origin);
     this.map.lineStyle(this.lineWidth, 0x666666, 1);
+    this.fillSelectedHexes();
     this.renderer.render(this.stage);
   }
 
-  drawHex({x, y}) {
+  drawHex({ x, y }) {
     this.map.drawPolygon([
       x, y - this.hexRadius,
       x - (this.hexWidth / 2), y - (this.hexRadius / 2),
@@ -93,7 +89,7 @@ class Game extends Component {
   }
 
   componentDidMount() {
-    this.renderer = autoDetectRenderer(900, 600);
+    this.renderer = autoDetectRenderer(1200, 900);
     this.stage = new Container();
     this.map = new Graphics();
 
@@ -102,8 +98,31 @@ class Game extends Component {
 
     this.renderer.view.addEventListener('click', this.onClick);
     this.renderer.view.addEventListener('wheel', this.onWheel, false);
+    this.renderer.view.addEventListener('mousedown', this.onMouseDown, false);
+    this.renderer.view.addEventListener('mousemove', this.onMouseMove, false);
+    this.renderer.view.addEventListener('mouseup', this.onMouseUp, false);
     this.gameDiv.appendChild(this.renderer.view);
     autorun(this.drawHexes);
+  }
+
+  onMouseDown(e) {
+    if (e.buttons === 1) {
+      //How far are we from the current origin?
+      this.dragOffset = { x: e.x - this.origin.x, y: e.y - this.origin.y };
+    }
+  }
+
+  onMouseMove({ x, y }) {
+    if (this.dragOffset) {
+      this.origin.x = x - this.dragOffset.x;
+      this.origin.y = y - this.dragOffset.y;
+    }
+  }
+
+  onMouseUp(e) {
+    if (this.dragOffset) {
+      this.dragOffset = null;
+    }
   }
 
   @action
@@ -117,36 +136,48 @@ class Game extends Component {
   }
 
   @action
-  zoom(delta) {
+  zoom(delta, hexX, hexY, offsetX, offsetY) {
     this.hexRadiusRaw += delta;
-    if (this.hexRadius < 5) this.hexRadiusRaw = 5;
+    if (this.hexRadius < 10) this.hexRadiusRaw = 10;
     if (this.hexRadius > 500) this.hexRadiusRaw = 500;
+    this.origin.x = Math.floor(offsetX - hexX * this.hexWidth);
+    this.origin.y = Math.floor(offsetY - hexY * this.hexRowHeight);
   }
 
   onWheel(e) {
     e.stopPropagation();
     e.preventDefault();
-    this.zoom(e.deltaY / 20);
+    const hexDistanceToOriginX = (e.offsetX - this.origin.x) / this.hexWidth;
+    const hexDistanceToOriginY = (e.offsetY - this.origin.y) / this.hexRowHeight;
+    const zoomAmount = e.deltaY / 20;
+
+    this.zoom(zoomAmount, hexDistanceToOriginX, hexDistanceToOriginY, e.offsetX, e.offsetY);
   }
 
   onClick(e) {
+    if (this.dragOffset) return;
     const hex = this.pixelToHex(e.offsetX, e.offsetY);
-    this.fillHex(this.hexToPixel(hex), 0x232233, .75);
-    this.renderer.render(this.stage);
+    let selectedHex = this.selectedHexes.find(aHex => aHex.q == hex.q && aHex.r == hex.r);
+
+    if (selectedHex) {
+      this.selectedHexes.remove(selectedHex);
+    } else {
+      this.selectedHexes.push(hex);
+    }
   }
 
   hexToPixel(hex) {
-    const x = this.hexWidth * (hex.q + hex.r/2) + this.mapOffsetX;
-    const y = this.hexRadius * 3/2 * hex.r + this.mapOffsetY;
+    const x = this.hexWidth * (hex.q + hex.r / 2) + this.origin.x;
+    const y = this.hexRadius * 3 / 2 * hex.r + this.origin.y;
     return { x, y };
   }
 
   pixelToHex(xValue, yValue) {
-    const x = xValue - this.mapOffsetX;
-    const y = yValue - this.mapOffsetY;
+    const x = xValue - this.origin.x;
+    const y = yValue - this.origin.y;
     const q = ((x * Math.sqrt(3) / 3) - (y / 3)) / this.hexRadius;
     const r = y * 2 / 3 / this.hexRadius;
-    return this.hexRound({q, r});
+    return this.hexRound({ q, r });
   }
 
   cubeRound(h) {
