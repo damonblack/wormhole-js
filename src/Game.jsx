@@ -47,20 +47,15 @@ class Game extends Component {
   }
 
   drawHexes() {
-    let row = 0;
     this.map.clear();
     this.map.lineStyle(this.lineWidth, 0x666666, 1);
-
-    const hexWidth = this.hexWidth;
-    const hexRowHeight = this.hexRowHeight;
-
-    for (let j = (this.origin.y % hexRowHeight); j < this.renderer.height; j += hexRowHeight) {
-      const offsetX = (j - this.origin.y) % (2 * hexRowHeight) === 0 ? 0 : -this.mapOffsetXOddRow;
-      for (let i = this.origin.x % hexWidth; i < this.renderer.width + this.mapOffsetXOddRow; i += hexWidth) {
-        const x = i + offsetX;
-        const y = j;
-        this.drawHex({ x, y });
+    let row = 0;
+    for (let j = (this.origin.y % this.hexRowHeight); j < this.renderer.height; j += this.hexRowHeight) {
+      const offsetX = row % 2 ? 0 : -this.mapOffsetXOddRow;
+      for (let i = this.origin.x % this.hexWidth; i < this.renderer.width + this.mapOffsetXOddRow; i += this.hexWidth) {
+        this.drawHex({ x: i + offsetX, y: j });
       }
+      row++;
     }
 
     this.map.lineStyle(this.lineWidth * 3, 0x990022, 1);
@@ -101,6 +96,7 @@ class Game extends Component {
     this.renderer.view.addEventListener('mousedown', this.onMouseDown, false);
     this.renderer.view.addEventListener('mousemove', this.onMouseMove, false);
     this.renderer.view.addEventListener('mouseup', this.onMouseUp, false);
+    document.addEventListener('keypress', this.onKeyPress);
     this.gameDiv.appendChild(this.renderer.view);
     autorun(this.drawHexes);
   }
@@ -125,6 +121,10 @@ class Game extends Component {
     }
   }
 
+  onKeyPress(e) {
+    console.log(e);
+  }
+
   @action
   zoomIn() {
     this.zoom(1);
@@ -136,12 +136,12 @@ class Game extends Component {
   }
 
   @action
-  zoom(delta, hexX, hexY, offsetX, offsetY) {
+  zoom(delta, hexX=0, hexY=0, offsetX=0, offsetY=0) {
     this.hexRadiusRaw += delta;
     if (this.hexRadius < 10) this.hexRadiusRaw = 10;
     if (this.hexRadius > 500) this.hexRadiusRaw = 500;
-    this.origin.x = Math.floor(offsetX - hexX * this.hexWidth);
-    this.origin.y = Math.floor(offsetY - hexY * this.hexRowHeight);
+    this.origin.x = offsetX - hexX * this.hexWidth;
+    this.origin.y = offsetY - hexY * this.hexRowHeight;
   }
 
   onWheel(e) {
@@ -155,7 +155,6 @@ class Game extends Component {
   }
 
   onClick(e) {
-    if (this.dragOffset) return;
     const hex = this.pixelToHex(e.offsetX, e.offsetY);
     let selectedHex = this.selectedHexes.find(aHex => aHex.q == hex.q && aHex.r == hex.r);
 
@@ -223,7 +222,7 @@ class Game extends Component {
           <button onClick={this.zoomIn}>+</button>
           <button onClick={this.zoomOut}>-</button>
         </div>
-        <div ref={el => this.gameDiv = el} className="game-canvas"/>
+        <div ref={el => this.gameDiv = el} className="game-canvas" onKeyPress={this.onKeyPress} />
       </div>
     );
   }
