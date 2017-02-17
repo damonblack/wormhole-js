@@ -17,6 +17,14 @@ class Game extends Component {
   }
 
   @computed
+  get hexStartLocation() {
+    const repeatHeight = 2 * this.hexRowHeight;
+    const x = this.origin.x % this.hexWidth - this.hexWidth;
+    const y = this.origin.y % repeatHeight - repeatHeight;
+    return {x, y};
+  }
+
+  @computed
   get mapOffsetXOddRow() {
     return this.hexWidth / 2;
   }
@@ -38,8 +46,7 @@ class Game extends Component {
 
   constructor(props) {
     super(props);
-    bindAll(this, [
-      'zoomIn', 'zoomOut', 'onWheel', 'onClick', 'onMouseDown', 'onMouseMove', 'onMouseUp', 'zoom', 'drawHexes', 'drawHex', 'pixelToHex']);
+    bindAll(this, ['zoomIn', 'zoomOut', 'onWheel', 'onClick', 'onMouseDown', 'onMouseMove', 'onMouseUp', 'zoom', 'drawHexes', 'drawHex', 'pixelToHex']);
   }
 
   fillSelectedHexes() {
@@ -49,13 +56,13 @@ class Game extends Component {
   drawHexes() {
     this.map.clear();
     this.map.lineStyle(this.lineWidth, 0x666666, 1);
-    let row = 0;
-    for (let j = (this.origin.y % this.hexRowHeight); j < this.renderer.height; j += this.hexRowHeight) {
+    let row = 1;
+    for (let j = this.hexStartLocation.y; j < this.renderer.height + this.hexRowHeight; j += this.hexRowHeight) {
       const offsetX = row % 2 ? 0 : -this.mapOffsetXOddRow;
-      for (let i = this.origin.x % this.hexWidth; i < this.renderer.width + this.mapOffsetXOddRow; i += this.hexWidth) {
+      for (let i = this.hexStartLocation.x; i < this.renderer.width + this.mapOffsetXOddRow; i += this.hexWidth) {
         this.drawHex({ x: i + offsetX, y: j });
       }
-      row++;
+      row += 1;
     }
 
     this.map.lineStyle(this.lineWidth * 3, 0x990022, 1);
