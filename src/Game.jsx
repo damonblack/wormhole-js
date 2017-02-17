@@ -1,14 +1,15 @@
 import React, { Component } from 'react';
 import { observable, autorun, action, computed } from 'mobx';
 import { observer } from 'mobx-react';
-import { Graphics, Container, autoDetectRenderer } from 'pixi.js';
+import { Graphics, Container, Sprite, autoDetectRenderer } from 'pixi.js';
 import './Game.css';
+import wormholeImage from './logo.png';
 import bindAll from 'lodash.bindall';
 
 @observer
 class Game extends Component {
   @observable hexRadiusRaw = 20;
-  @observable origin = { x: Math.floor(Math.sqrt(3) * 20), y: 20 };
+  @observable origin = { x: this.renderer.view.width/2, y: this.renderer.view.height/2 };
   @observable selectedHexes = [];
 
   @computed
@@ -46,11 +47,12 @@ class Game extends Component {
 
   constructor(props) {
     super(props);
-    bindAll(this, ['zoomIn', 'zoomOut', 'onWheel', 'onClick', 'onMouseDown', 'onMouseMove', 'onMouseUp', 'zoom', 'drawHexes', 'drawHex', 'pixelToHex']);
+    bindAll(this, ['zoomIn', 'zoomOut', 'onWheel', 'onClick', 'onMouseDown', 'onMouseMove', 'onMouseUp', 'onKeyDown', 'zoom', 'drawHexes', 'drawHex', 'pixelToHex']);
+    this.worm
   }
 
   fillSelectedHexes() {
-    this.selectedHexes.forEach((hex) => this.fillHex(this.hexToPixel(hex), 0x777777));
+    this.selectedHexes.forEach((hex) => this.fillHex(this.hexToPixel(hex), 0x777777, 0.4));
   }
 
   drawHexes() {
@@ -65,9 +67,8 @@ class Game extends Component {
       row += 1;
     }
 
-    this.map.lineStyle(this.lineWidth * 3, 0x990022, 1);
-    this.drawHex(this.origin);
-    this.map.lineStyle(this.lineWidth, 0x666666, 1);
+    this.wormholeSprite.x = this.origin.x - 20;
+    this.wormholeSprite.y = this.origin.y - 20;
     this.fillSelectedHexes();
     this.renderer.render(this.stage);
   }
@@ -94,16 +95,22 @@ class Game extends Component {
     this.renderer = autoDetectRenderer(1200, 900);
     this.stage = new Container();
     this.map = new Graphics();
+    this.wormholeSprite = Sprite.fromImage(wormholeImage);
+    this.wormholeSprite.height = 40;
+    this.wormholeSprite.width = 40;
+    this.wormholeSprite.x = this.origin.x - 20;
+    this.wormholeSprite.y = this.origin.y - 20;
 
     this.renderer.clearBeforeRender = true;
     this.stage.addChild(this.map);
+    this.stage.addChild(this.wormholeSprite);
 
     this.renderer.view.addEventListener('click', this.onClick);
     this.renderer.view.addEventListener('wheel', this.onWheel, false);
     this.renderer.view.addEventListener('mousedown', this.onMouseDown, false);
     this.renderer.view.addEventListener('mousemove', this.onMouseMove, false);
     this.renderer.view.addEventListener('mouseup', this.onMouseUp, false);
-    document.addEventListener('keypress', this.onKeyPress);
+    this.gameDiv.focus();
     this.gameDiv.appendChild(this.renderer.view);
     autorun(this.drawHexes);
   }
@@ -128,8 +135,17 @@ class Game extends Component {
     }
   }
 
-  onKeyPress(e) {
-    console.log(e);
+  MOVE_MAP= {
+    37: () => this.origin.x += 10, // ArrowLeft
+    38: () => this.origin.y += 10, // ArrowUp
+    39: () => this.origin.x -= 10, // ArrowRight
+    40: () => this.origin.y -= 10, // ArrowDown
+  };
+
+  onKeyDown(e) {
+    e.preventDefault();
+    const moveFunc = this.MOVE_MAP[e.keyCode];
+    if (moveFunc) moveFunc();
   }
 
   @action
@@ -224,12 +240,12 @@ class Game extends Component {
 
   render() {
     return (
-      <div>
+      <div >
         <div className="controls">
           <button onClick={this.zoomIn}>+</button>
           <button onClick={this.zoomOut}>-</button>
         </div>
-        <div ref={el => this.gameDiv = el} className="game-canvas" onKeyPress={this.onKeyPress} />
+        <div ref={el => this.gameDiv = el} className="game-canvas" tabIndex="1" onKeyDown={this.onKeyDown}/>
       </div>
     );
   }
