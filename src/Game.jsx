@@ -100,6 +100,8 @@ class Game extends Component {
     this.wormholeSprite.width = 40;
     this.wormholeSprite.x = this.origin.x - 20;
     this.wormholeSprite.y = this.origin.y - 20;
+    this.mouseDownPoint = { x: 0, y: 0 };
+    this.minDistanceConsideredDrag = 4;
 
     this.renderer.clearBeforeRender = true;
     this.stage.addChild(this.map);
@@ -119,6 +121,7 @@ class Game extends Component {
     if (e.buttons === 1) {
       //How far are we from the current origin?
       this.dragOffset = { x: e.x - this.origin.x, y: e.y - this.origin.y };
+      this.mouseDownPoint = { x: e.x, y: e.y };
     }
   }
 
@@ -178,6 +181,15 @@ class Game extends Component {
   }
 
   onClick(e) {
+    let draggedDistance = Math.sqrt(
+      Math.pow((this.mouseDownPoint.x - e.x), 2) + Math.pow((this.mouseDownPoint.y - e.y), 2)
+    );
+
+    //if this was a "drag" rather than a "click", exit.
+    if (draggedDistance >= this.minDistanceConsideredDrag) {
+      return;
+    }
+
     const hex = this.pixelToHex(e.offsetX, e.offsetY);
     let selectedHex = this.selectedHexes.find(aHex => aHex.q == hex.q && aHex.r == hex.r);
 
