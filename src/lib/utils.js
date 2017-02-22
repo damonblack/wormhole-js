@@ -1,3 +1,3 @@
 export const getWormholeSize = function(hexWidth) {
-  return hexWidth/5;
+  return 5 + hexWidth/4;
 };

@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
-import { observable, autorun, action, computed } from 'mobx';
+import { observable, autorunAsync, action, computed } from 'mobx';
 import { observer } from 'mobx-react';
-import { Graphics, Container, Sprite, autoDetectRenderer } from 'pixi.js';
+import { Graphics, Container, Sprite, Rectangle, autoDetectRenderer } from 'pixi.js';
+import { getWormholeSize } from './lib/utils';
 import './Game.css';
 import wormholeImage from './logo.png';
 import bindAll from 'lodash.bindall';
@@ -31,8 +32,13 @@ class Game extends Component {
   }
 
   @computed
+  get wormholeSize() {
+    return getWormholeSize(this.hexRadius);
+  }
+
+  @computed
   get lineWidth() {
-    return Math.ceil(this.hexRadius / 40);
+    return Math.ceil(this.hexRadius / 100);
   }
 
   @computed
@@ -48,7 +54,6 @@ class Game extends Component {
   constructor(props) {
     super(props);
     bindAll(this, ['zoomIn', 'zoomOut', 'onWheel', 'onClick', 'onMouseDown', 'onMouseMove', 'onMouseUp', 'onKeyDown', 'zoom', 'drawHexes', 'drawHex', 'pixelToHex']);
-    this.worm
   }
 
   fillSelectedHexes() {
@@ -57,18 +62,20 @@ class Game extends Component {
 
   drawHexes() {
     this.map.clear();
-    this.map.lineStyle(this.lineWidth, 0x666666, 1);
-    let row = 1;
-    for (let j = this.hexStartLocation.y; j < this.renderer.height + this.hexRowHeight; j += this.hexRowHeight) {
-      const offsetX = row % 2 ? 0 : -this.mapOffsetXOddRow;
-      for (let i = this.hexStartLocation.x; i < this.renderer.width + this.mapOffsetXOddRow; i += this.hexWidth) {
-        this.drawHex({ x: i + offsetX, y: j });
-      }
-      row += 1;
-    }
+    this.map.lineStyle(this.lineWidth, 0x444444, 1);
+    // let row = 1;
+    // for (let j = this.hexStartLocation.y; j < this.renderer.height + this.hexRowHeight; j += this.hexRowHeight) {
+    //   const offsetX = row % 2 ? 0 : -this.mapOffsetXOddRow;
+    //   for (let i = this.hexStartLocation.x; i < this.renderer.width + this.mapOffsetXOddRow; i += this.hexWidth) {
+    //     this.drawHex({ x: i + offsetX, y: j });
+    //   }
+    //   row += 1;
+    // }
 
-    this.wormholeSprite.x = this.origin.x - 20;
-    this.wormholeSprite.y = this.origin.y - 20;
+    this.wormholeSprite.x = this.origin.x - this.wormholeSize/2;
+    this.wormholeSprite.y = this.origin.y - this.wormholeSize/2;
+    this.wormholeSprite.width = this.wormholeSize;
+    this.wormholeSprite.height = this.wormholeSize;
     this.fillSelectedHexes();
     this.renderer.render(this.stage);
   }
@@ -92,9 +99,11 @@ class Game extends Component {
   }
 
   componentDidMount() {
-    this.renderer = autoDetectRenderer(1200, 900);
+    this.renderer = autoDetectRenderer(1200, 900); //, {}, true); // uncomment to force canvas
     this.stage = new Container();
     this.map = new Graphics();
+    this.map.interactive = true;
+    this.map.hitArea = new Rectangle(0, 0, 1200, 900);
     this.wormholeSprite = Sprite.fromImage(wormholeImage);
     this.wormholeSprite.height = 40;
     this.wormholeSprite.width = 40;
@@ -104,35 +113,59 @@ class Game extends Component {
     this.minDistanceConsideredDrag = 4;
 
     this.renderer.clearBeforeRender = true;
-    this.stage.addChild(this.map);
     this.stage.addChild(this.wormholeSprite);
+    this.stage.addChild(this.map);
 
-    this.renderer.view.addEventListener('click', this.onClick);
+    this.map.on('click', this.onClick);
     this.renderer.view.addEventListener('wheel', this.onWheel, false);
-    this.renderer.view.addEventListener('mousedown', this.onMouseDown, false);
-    this.renderer.view.addEventListener('mousemove', this.onMouseMove, false);
-    this.renderer.view.addEventListener('mouseup', this.onMouseUp, false);
+    this.renderer.plugins.interaction.addListener('mousedown', this.onMouseDown);
+    this.renderer.plugins.interaction.addListener('mousemove', this.onMouseMove);
+    this.renderer.plugins.interaction.addListener('mouseup', this.onMouseUp);
     this.gameDiv.focus();
     this.gameDiv.appendChild(this.renderer.view);
-    autorun(this.drawHexes);
+    autorunAsync(this.drawHexes, 1000/60); // This caps the rate of mobx updates
   }
 
-  onMouseDown(e) {
-    if (e.buttons === 1) {
+  onMouseDown(interactionEvent) {
+    const data = interactionEvent.data;
+    if (data.originalEvent.buttons === 1) {
       //How far are we from the current origin?
-      this.dragOffset = { x: e.x - this.origin.x, y: e.y - this.origin.y };
-      this.mouseDownPoint = { x: e.x, y: e.y };
+      this.dragOffset = { x: data.global.x - this.origin.x, y: data.global.y - this.origin.y };
+      this.mouseDownPoint = { x: data.global.x, y: data.global.y };
     }
   }
 
-  onMouseMove({ x, y }) {
+  onMouseMove(interactionEvent) {
+    const data = interactionEvent.data;
     if (this.dragOffset) {
-      this.origin.x = x - this.dragOffset.x;
-      this.origin.y = y - this.dragOffset.y;
+      this.origin.x = data.global.x - this.dragOffset.x;
+      this.origin.y = data.global.y - this.dragOffset.y;
     }
   }
 
-  onMouseUp(e) {
+  onClick(interactionEvent) {
+    const data = interactionEvent.data;
+    let draggedDistance = Math.sqrt(
+      Math.pow((this.mouseDownPoint.x - data.global.x), 2) + Math.pow((this.mouseDownPoint.y - data.global.y), 2)
+    );
+
+    //if this was a "drag" rather than a "click", exit.
+    console.log(`distance dragged: ${draggedDistance}`);
+    if (draggedDistance >= this.minDistanceConsideredDrag) {
+      return;
+    }
+
+    const hex = this.pixelToHex(data.global.x, data.global.y);
+    let selectedHex = this.selectedHexes.find(aHex => aHex.q == hex.q && aHex.r == hex.r);
+
+    if (selectedHex) {
+      this.selectedHexes.remove(selectedHex);
+    } else {
+      this.selectedHexes.push(hex);
+    }
+  }
+
+  onMouseUp(interactionEvent) {
     if (this.dragOffset) {
       this.dragOffset = null;
     }
@@ -175,29 +208,9 @@ class Game extends Component {
     e.preventDefault();
     const hexDistanceToOriginX = (e.offsetX - this.origin.x) / this.hexWidth;
     const hexDistanceToOriginY = (e.offsetY - this.origin.y) / this.hexRowHeight;
-    const zoomAmount = e.deltaY / 20;
+    const zoomAmount = this.hexRadius * e.deltaY / 2000;
 
     this.zoom(zoomAmount, hexDistanceToOriginX, hexDistanceToOriginY, e.offsetX, e.offsetY);
-  }
-
-  onClick(e) {
-    let draggedDistance = Math.sqrt(
-      Math.pow((this.mouseDownPoint.x - e.x), 2) + Math.pow((this.mouseDownPoint.y - e.y), 2)
-    );
-
-    //if this was a "drag" rather than a "click", exit.
-    if (draggedDistance >= this.minDistanceConsideredDrag) {
-      return;
-    }
-
-    const hex = this.pixelToHex(e.offsetX, e.offsetY);
-    let selectedHex = this.selectedHexes.find(aHex => aHex.q == hex.q && aHex.r == hex.r);
-
-    if (selectedHex) {
-      this.selectedHexes.remove(selectedHex);
-    } else {
-      this.selectedHexes.push(hex);
-    }
   }
 
   hexToPixel(hex) {
