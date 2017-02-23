@@ -5,6 +5,7 @@ import { Graphics, Container, Sprite, Rectangle, autoDetectRenderer } from 'pixi
 import { getWormholeSize } from './lib/utils';
 import './Game.css';
 import wormholeImage from './logo.png';
+import starSystemImage from './star.png';
 import bindAll from 'lodash.bindall';
 
 @observer
@@ -54,6 +55,9 @@ class Game extends Component {
   constructor(props) {
     super(props);
     bindAll(this, ['zoomIn', 'zoomOut', 'onWheel', 'onClick', 'onMouseDown', 'onMouseMove', 'onMouseUp', 'onKeyDown', 'zoom', 'drawHexes', 'drawHex', 'pixelToHex']);
+    this.starSystems = [
+      [3,4], [2,1], [8,1]
+    ]
   }
 
   fillSelectedHexes() {
@@ -76,6 +80,11 @@ class Game extends Component {
     this.wormholeSprite.y = this.origin.y - this.wormholeSize/2;
     this.wormholeSprite.width = this.wormholeSize;
     this.wormholeSprite.height = this.wormholeSize;
+    const starPt = this.hexToPixel({q: 1, r: 1});
+    this.starSystemSprite.x = starPt.x;
+    this.starSystemSprite.y = starPt.y;
+    this.starSystemSprite.width = this.wormholeSize;
+    this.starSystemSprite.height = this.wormholeSize;
     this.fillSelectedHexes();
     this.renderer.render(this.stage);
   }
@@ -105,6 +114,7 @@ class Game extends Component {
     this.map.interactive = true;
     this.map.hitArea = new Rectangle(0, 0, 1200, 900);
     this.wormholeSprite = Sprite.fromImage(wormholeImage);
+    this.starSystemSprite = Sprite.fromImage(starSystemImage);
     this.wormholeSprite.height = 40;
     this.wormholeSprite.width = 40;
     this.wormholeSprite.x = this.origin.x - 20;
@@ -114,6 +124,7 @@ class Game extends Component {
 
     this.renderer.clearBeforeRender = true;
     this.stage.addChild(this.wormholeSprite);
+    this.stage.addChild(this.starSystemSprite);
     this.stage.addChild(this.map);
 
     this.map.on('click', this.onClick);
@@ -150,7 +161,6 @@ class Game extends Component {
     );
 
     //if this was a "drag" rather than a "click", exit.
-    console.log(`distance dragged: ${draggedDistance}`);
     if (draggedDistance >= this.minDistanceConsideredDrag) {
       return;
     }
