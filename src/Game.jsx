@@ -54,39 +54,41 @@ class Game extends Component {
 
   constructor(props) {
     super(props);
-    bindAll(this, ['zoomIn', 'zoomOut', 'onWheel', 'onClick', 'onMouseDown', 'onMouseMove', 'onMouseUp', 'onKeyDown', 'zoom', 'drawHexes', 'drawHex', 'pixelToHex']);
-    this.starSystems = [
-      [3,4], [2,1], [8,1]
-    ]
+    bindAll(this, ['zoomIn', 'zoomOut', 'onWheel', 'onClick', 'onMouseDown', 'onMouseMove', 'onMouseUp',
+      'onKeyDown', 'zoom', 'drawHexes', 'drawHex', 'pixelToHex', 'loadStarSystems', 'updateStarSystems', 'animate', 'spriteOnMouseDown', 'spriteOnMouseUp', 'spriteOnMouseMove']);
+
+    this.STAR_SYSTEMS = [
+      [2,3],
+      [5,6],
+      [2,6],
+      [-3,-2]
+    ].map((pt) => {
+      return { q: pt[0], r: pt[1] }
+    });
   }
 
   fillSelectedHexes() {
-    this.selectedHexes.forEach((hex) => this.fillHex(this.hexToPixel(hex), 0x777777, 0.4));
+    this.selectedHexes.forEach((hex) => this.fillHex(this.hexToPixel(hex), 0x444444, 0.4));
   }
 
   drawHexes() {
     this.map.clear();
-    this.map.lineStyle(this.lineWidth, 0x444444, 1);
-    // let row = 1;
-    // for (let j = this.hexStartLocation.y; j < this.renderer.height + this.hexRowHeight; j += this.hexRowHeight) {
-    //   const offsetX = row % 2 ? 0 : -this.mapOffsetXOddRow;
-    //   for (let i = this.hexStartLocation.x; i < this.renderer.width + this.mapOffsetXOddRow; i += this.hexWidth) {
-    //     this.drawHex({ x: i + offsetX, y: j });
-    //   }
-    //   row += 1;
-    // }
+    this.map.lineStyle(this.lineWidth, 0x222222, 1);
+    let row = 1;
+    for (let j = this.hexStartLocation.y; j < this.renderer.height + this.hexRowHeight; j += this.hexRowHeight) {
+      const offsetX = row % 2 ? 0 : -this.mapOffsetXOddRow;
+      for (let i = this.hexStartLocation.x; i < this.renderer.width + this.mapOffsetXOddRow; i += this.hexWidth) {
+        this.drawHex({ x: i + offsetX, y: j });
+      }
+      row += 1;
+    }
 
     this.wormholeSprite.x = this.origin.x - this.wormholeSize/2;
     this.wormholeSprite.y = this.origin.y - this.wormholeSize/2;
     this.wormholeSprite.width = this.wormholeSize;
     this.wormholeSprite.height = this.wormholeSize;
-    const starPt = this.hexToPixel({q: 1, r: 1});
-    this.starSystemSprite.x = starPt.x;
-    this.starSystemSprite.y = starPt.y;
-    this.starSystemSprite.width = this.wormholeSize;
-    this.starSystemSprite.height = this.wormholeSize;
+    this.updateStarSystems();
     this.fillSelectedHexes();
-    this.renderer.render(this.stage);
   }
 
   drawHex({ x, y }) {
@@ -101,6 +103,70 @@ class Game extends Component {
     ]);
   }
 
+  addSystemSprite(q, r) {
+
+  }
+
+  loadStarSystems() {
+    this.starSystems = this.STAR_SYSTEMS.map((hexPt) => {
+      const systemSprite = Sprite.fromImage(starSystemImage);
+      const center = this.hexToPixel(hexPt);
+      systemSprite.interactive = true;
+      systemSprite.q = hexPt.q;
+      systemSprite.r = hexPt.r;
+      systemSprite.height = this.wormholeSize;
+      systemSprite.width = this.wormholeSize;
+      systemSprite.position.x = center.x - systemSprite.width/2;
+      systemSprite.position.y = center.y - systemSprite.height/2;
+      systemSprite.on('mousedown', this.spriteOnMouseDown);
+      systemSprite.on('mouseup', this.spriteOnMouseUp);
+      systemSprite.on('mouseupoutside', this.spriteOnMouseUp);
+      systemSprite.on('mousemove', this.spriteOnMouseMove);
+      this.stage.addChild(systemSprite);
+      return systemSprite;
+    })
+
+  }
+
+  spriteOnMouseDown(interactionEvent) {
+    const target = interactionEvent.currentTarget;
+    target.alpha = 0.5;
+    target.dragging = true;
+    target.interactionData = interactionEvent.data;
+    // target.interactionData.stopped = true;
+    // interactionEvent.stopPropagation();
+  }
+
+  spriteOnMouseMove(interactionEvent) {
+    const target = interactionEvent.currentTarget;
+    if (target.dragging) {
+      target.position.x = target.interactionData.getLocalPosition(target.parent).x - target.width/2;
+      target.position.y = target.interactionData.getLocalPosition(target.parent).y - target.height/2;
+    }
+  }
+
+  spriteOnMouseUp(interactionEvent) {
+    const target = interactionEvent.currentTarget;
+    target.dragging = false;
+    target.alpha = 1;
+    const hexPosition = this.pixelToHex(target.position.x, target.position.y)
+    target.q = hexPosition.q;
+    target.r = hexPosition.r;
+    const adjustedPixelPosition = this.hexToPixel(hexPosition);
+    target.position.x = adjustedPixelPosition.x - target.width/2;
+    target.position.y = adjustedPixelPosition.y - target.height/2;
+  }
+
+  updateStarSystems() {
+    this.starSystems.forEach((systemSprite) => {
+      const center = this.hexToPixel(systemSprite);
+      systemSprite.height = this.wormholeSize;
+      systemSprite.width = this.wormholeSize;
+      systemSprite.position.x = center.x - systemSprite.width/2;
+      systemSprite.position.y = center.y - systemSprite.height/2;
+    })
+  }
+
   fillHex(point, color, alpha = 1) {
     this.map.beginFill(color, alpha);
     this.drawHex(point);
@@ -108,33 +174,34 @@ class Game extends Component {
   }
 
   componentDidMount() {
-    this.renderer = autoDetectRenderer(1200, 900); //, {}, true); // uncomment to force canvas
+    this.renderer = autoDetectRenderer(window.innerWidth, window.innerHeight); //, {}, true); // uncomment to force canvas
     this.stage = new Container();
     this.map = new Graphics();
     this.map.interactive = true;
     this.map.hitArea = new Rectangle(0, 0, 1200, 900);
     this.wormholeSprite = Sprite.fromImage(wormholeImage);
-    this.starSystemSprite = Sprite.fromImage(starSystemImage);
     this.wormholeSprite.height = 40;
     this.wormholeSprite.width = 40;
     this.wormholeSprite.x = this.origin.x - 20;
     this.wormholeSprite.y = this.origin.y - 20;
+
     this.mouseDownPoint = { x: 0, y: 0 };
     this.minDistanceConsideredDrag = 4;
 
     this.renderer.clearBeforeRender = true;
-    this.stage.addChild(this.wormholeSprite);
-    this.stage.addChild(this.starSystemSprite);
     this.stage.addChild(this.map);
+    this.stage.addChild(this.wormholeSprite);
+    this.loadStarSystems();
 
     this.map.on('click', this.onClick);
     this.renderer.view.addEventListener('wheel', this.onWheel, false);
-    this.renderer.plugins.interaction.addListener('mousedown', this.onMouseDown);
-    this.renderer.plugins.interaction.addListener('mousemove', this.onMouseMove);
-    this.renderer.plugins.interaction.addListener('mouseup', this.onMouseUp);
-    this.gameDiv.focus();
+    this.map.on('mousedown', this.onMouseDown);
+    this.map.on('mousemove', this.onMouseMove);
+    this.map.on('mouseup', this.onMouseUp);
+    this.map.on('mouseupoutside', this.onMouseUp);
     this.gameDiv.appendChild(this.renderer.view);
     autorunAsync(this.drawHexes, 1000/60); // This caps the rate of mobx updates
+    this.animate();
   }
 
   onMouseDown(interactionEvent) {
@@ -203,6 +270,7 @@ class Game extends Component {
   zoomOut() {
     this.zoom(-1);
   }
+
 
   @action
   zoom(delta, hexX=0, hexY=0, offsetX=0, offsetY=0) {
@@ -273,6 +341,11 @@ class Game extends Component {
     return { x, y, z };
   }
 
+  animate(elapsedTime) {
+    this.renderer.render(this.stage);
+    requestAnimationFrame(this.animate);
+  }
+
   render() {
     return (
       <div >
@@ -280,7 +353,7 @@ class Game extends Component {
           <button onClick={this.zoomIn}>+</button>
           <button onClick={this.zoomOut}>-</button>
         </div>
-        <div ref={el => this.gameDiv = el} className="game-canvas" tabIndex="1" onKeyDown={this.onKeyDown}/>
+        <div ref={el => this.gameDiv = el} className="game-canvas" tabIndex="1" />
       </div>
     );
   }
